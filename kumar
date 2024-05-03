@@ -1,70 +1,125 @@
-import tkinter as tk
-import itertools
-import random
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gambling Game</title>
+    <style>
+        .container {
+            margin: 50px auto;
+            width: 300px;
+            text-align: center;
+        }
 
-def gambling():
-    gambling_options = ['♦', '♥', '♠', '♣', '∆']
-    balance = 0
+        .balance {
+            font-size: 18px;
+            margin-bottom: 10px;
+        }
 
-    def set_balance():
-        nonlocal balance
-        balance = int(balance_entry.get())
-        balance_label.config(text="Bakiye: {}".format(balance))
+        input[type="text"], button {
+            margin: 5px;
+        }
 
-    def check_choice():
-        nonlocal balance
-        bet_amount = int(bet_entry.get())
-        if bet_amount <= balance:
-            player_choice = choice.get()
-            if player_choice in gambling_options:
-                combination = itertools.product(gambling_options, repeat=3)
-                result_combination = random.choice(list(combination))
-                result_label.config(text="┌─────────┐\n│ {} {} {} │\n└─────────┘".format(result_combination[0], result_combination[1], result_combination[2]))
-                if player_choice == ''.join(result_combination):
-                    result_var.set("KAZANDİN!")
-                    balance += bet_amount  # Kazanma durumunda bahis miktarı kadar bakiyeyi arttır
-                elif player_choice in result_combination:
-                    result_var.set("Yarı kazandınız.")
-                    balance += bet_amount // 2  # Yarı kazanma durumunda bahis miktarının yarısı kadar bakiyeyi arttır
-                else:
-                    result_var.set("KASA KAZANDİ!")
-                    balance -= bet_amount  # Kaybetme durumunda bahis miktarı kadar bakiyeyi azalt
-                balance_label.config(text="Bakiye: {}".format(balance))  # Bakiyeyi güncelle
-            else:
-                result_var.set("Geçersiz giriş. Lütfen listeden bir sembol seçin.")
-        else:
-            result_var.set("Yetersiz bakiye.")
+        .symbols {
+            margin-bottom: 10px;
+        }
 
-    root = tk.Tk()
-    root.title("Kumar Oyunu")
+        .symbols input[type="radio"] {
+            display: none;
+        }
 
-    balance_label = tk.Label(root, text="Bakiye: {}".format(balance))
-    balance_label.pack()
+        .symbols input[type="radio"] + label {
+            display: inline-block;
+            width: 30px;
+            height: 30px;
+            border: 1px solid #ccc;
+            text-align: center;
+            line-height: 30px;
+            cursor: pointer;
+            margin-right: 5px;
+        }
 
-    balance_amount = tk.StringVar()
-    tk.Label(root, text="Bakiye miktarı:").pack()
-    balance_entry = tk.Entry(root, textvariable=balance_amount)
-    balance_entry.pack()
-    tk.Button(root, text="Bakiyeyi Ayarla", command=set_balance).pack()
+        .result {
+            margin-top: 20px;
+            font-size: 18px;
+            color: blue;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Kumar Oyunu</h1>
+        <div class="balance" id="balance">Bakiye: 0</div>
+        <label for="balance-input">Bakiye miktarı:</label>
+        <input type="text" id="balance-input">
+        <button onclick="setBalance()">Bakiyeyi Ayarla</button>
+        
+        <label for="bet-input">Bahis miktarı:</label>
+        <input type="text" id="bet-input">
+        <button onclick="checkChoice()">Bahis Yap</button>
 
-    bet_amount = tk.StringVar()
-    tk.Label(root, text="Bahis miktarı:").pack()
-    bet_entry = tk.Entry(root, textvariable=bet_amount)
-    bet_entry.pack()
-    tk.Button(root, text="Bahis Yap", command=check_choice).pack()
+        <div class="symbols">
+            <label for="symbol-options">Lütfen sembol seçin:</label><br>
+            <input type="radio" name="symbol" id="diamond" value="♦"><label for="diamond">♦</label>
+            <input type="radio" name="symbol" id="heart" value="♥"><label for="heart">♥</label>
+            <input type="radio" name="symbol" id="spade" value="♠"><label for="spade">♠</label>
+            <input type="radio" name="symbol" id="club" value="♣"><label for="club">♣</label>
+            <input type="radio" name="symbol" id="triangle" value="∆"><label for="triangle">∆</label>
+        </div>
 
-    choice = tk.StringVar()
-    tk.Label(root, text="Lütfen sembol seçin:").pack()
-    for option in gambling_options:
-        tk.Radiobutton(root, text=option, variable=choice, value=option).pack(anchor=tk.W)
+        <div class="result" id="result"></div>
+    </div>
+    
+    <script>
+        let balance = 0;
 
-    result_label = tk.Label(root, text="")
-    result_label.pack()
+        function setBalance() {
+            const balanceInput = document.getElementById("balance-input");
+            balance = parseInt(balanceInput.value);
+            document.getElementById("balance").innerText = "Bakiye: " + balance;
+        }
 
-    result_var = tk.StringVar()
-    result_message = tk.Label(root, textvariable=result_var, fg="blue")
-    result_message.pack()
+        function checkChoice() {
+            const betInput = document.getElementById("bet-input");
+            const betAmount = parseInt(betInput.value);
+            const symbols = document.getElementsByName("symbol");
+            let playerChoice = "";
 
-    root.mainloop()
+            for (const symbol of symbols) {
+                if (symbol.checked) {
+                    playerChoice = symbol.value;
+                    break;
+                }
+            }
 
-gambling()
+            if (betAmount <= balance) {
+                const gamblingOptions = ['♦', '♥', '♠', '♣', '∆'];
+                const resultCombination = [];
+                for (let i = 0; i < 3; i++) {
+                    const randomIndex = Math.floor(Math.random() * gamblingOptions.length);
+                    resultCombination.push(gamblingOptions[randomIndex]);
+                }
+
+                const resultDiv = document.getElementById("result");
+                resultDiv.innerHTML = `<div class="result-box">
+                                            <div class="row">${resultCombination.join(' ')}</div>
+                                        </div>`;
+                
+                if (playerChoice === resultCombination.join('')) {
+                    resultDiv.innerHTML += "<p>KAZANDİN!</p>";
+                    balance += betAmount;
+                } else if (resultCombination.includes(playerChoice)) {
+                    resultDiv.innerHTML += "<p>Yarı kazandınız.</p>";
+                    balance += Math.floor(betAmount / 2);
+                } else {
+                    resultDiv.innerHTML += "<p>KASA KAZANDİ!</p>";
+                    balance -= betAmount;
+                }
+
+                document.getElementById("balance").innerText = "Bakiye: " + balance;
+            } else {
+                document.getElementById("result").innerHTML = "<p>Yetersiz bakiye.</p>";
+            }
+        }
+    </script>
+</body>
+</html>
